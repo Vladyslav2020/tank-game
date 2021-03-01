@@ -101,14 +101,7 @@ server.on('connection', ws => {
         client.x = tank.x;
         client.y = tank.y;
         client.rotation = tank.rotation;
-        for (client of clients) {
-            if (client[0] !== ws) {
-                let tanks = Array.from(clients.entries())
-                    .filter(item => item[0] !== client[0])
-                    .map(item => item[1]);
-                client[0].send(JSON.stringify({ tanks }));
-            }
-        }
+        notify();
         if (response?.bullet) {
             let flag = false;
             for (let i = 0; i < data.bullets.length; i++)
@@ -122,16 +115,9 @@ server.on('connection', ws => {
     });
     ws.on('close', () => {
         clients.delete(ws);
-        for (let client of clients) {
-            let tanks = Array.from(clients.entries())
-                .filter(item => item[0] !== client[0])
-                .map(item => item[1]);
-            client[0].send(JSON.stringify({ tanks }));
-        }
+        notify();
     });
 });
-
-server.on('message', ws => {});
 
 function degToRad(angle) {
     return (angle * Math.PI) / 180;
@@ -139,6 +125,15 @@ function degToRad(angle) {
 
 function dist(x1, y1, x2, y2) {
     return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
+}
+
+function notify(){
+    for (let client of clients) {
+        let tanks = Array.from(clients.entries())
+            .filter(item => item[0] !== client[0])
+            .map(item => item[1]);
+        client[0].send(JSON.stringify({ tanks, bullets: data.bullets }));
+    }
 }
 
 setInterval(() => {
@@ -166,12 +161,7 @@ setInterval(() => {
             bullet.y = -1;
         }
     }
-    for (let client of clients) {
-        let tanks = Array.from(clients.entries())
-            .filter(item => item[0] !== client[0])
-            .map(item => item[1]);
-        client[0].send(JSON.stringify({ tanks, bullets: data.bullets }));
-    }
+    notify();
 }, 30);
 
 console.log('Server is working');

@@ -65,10 +65,13 @@ socket.onmessage = event => {
         };
     } else {
         let tanksArr = [];
+        for (let tank of tanks)
+            tank.update = false;
         for (let tank of dataFromServer.tanks) {
             let flag = false;
             for (let i = 0; i < tanks.length; i++) {
-                if (tanks[i].src === tank.src) {
+                if (tanks[i].src === tank.src && !tanks[i].update) {
+                    tanks[i].update = true;
                     tanks[i].x = tank.x;
                     tanks[i].y = tank.y;
                     tanks[i].rotation = tank.rotation;
@@ -290,5 +293,6 @@ document.addEventListener('keyup', event => {
 });
 
 socket.onclose = () => {
+    recievedData = false;
     location.reload();
 };
